@@ -104,11 +104,11 @@ class Matrix {
         }
     }  // сложение строк
 
-    void multiply_rows(int row_number, M multiplier) {
+    void multiply_row_by_number(int row_number, M multiplier) {
         for(int j = 1; j <= cols; j++) { 
             data[row_number - 1][j] *= multiplier;
         }
-    } // умножение строк
+    } // умножение строки на число
 
     void swap_rows(int first_row_number, int second_row_number) {
         auto tmp = data[first_row_number - 1];
@@ -116,11 +116,24 @@ class Matrix {
         data[second_row_number - 1] = tmp;
     } // поменять строки местами
 
-    // void multiply_row_by_number();  // умножение строки на коэффициент
-
-    // bool is_diagonal() {  // проверка, является ли матрица диагональной 
-    //     // как это проверить?
-    // }
+    bool is_diagonal() {
+        if(rows == cols) {
+            for(int i = 0; i < rows; i++) {
+                for(int j = 1; j <= cols; j++) {
+                    if((data[i][i + 1] != 0) && (data[i][i] == 0))
+                    {
+                        
+                        return true;
+                    }
+                    else {
+                        
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    } // проверка, является ли матрица диагональной 
 
     // M determinant_of_diagonal_matrix()  { // подсчет определителя диагональной матрицы
     //     if(is_diagonal()) {
