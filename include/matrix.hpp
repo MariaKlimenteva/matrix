@@ -104,9 +104,18 @@ class Matrix {
         }
     }  // сложение строк
 
-    
-    // void multiply_rows();   // умножение строк
-    // void swap_rows();   // поменять строки местами
+    void multiply_rows(int row_number, M multiplier) {
+        for(int j = 1; j <= cols; j++) { 
+            data[row_number - 1][j] *= multiplier;
+        }
+    } // умножение строк
+
+    void swap_rows(int first_row_number, int second_row_number) {
+        auto tmp = data[first_row_number - 1];
+        data[first_row_number - 1] = data[second_row_number - 1];
+        data[second_row_number - 1] = tmp;
+    } // поменять строки местами
+
     // void multiply_row_by_number();  // умножение строки на коэффициент
 
     // bool is_diagonal() {  // проверка, является ли матрица диагональной 

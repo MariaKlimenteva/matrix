@@ -13,4 +13,13 @@ int main()
 
     M.summarize_rows(1, 3);
     M.print_matrix();
+
+    M.multiply_rows(1, 2);
+    M.print_matrix();
+
+    M.swap_rows(2, 1);
+    M.print_matrix();
+
+    M.summarize_rows(1, 3);
+    M.print_matrix();
 }
