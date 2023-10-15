@@ -10,4 +10,7 @@ int main()
     M[1][2] = 2;
     M[1][3] = 3;
     M.print_matrix();
+
+    M.summarize_rows(1, 3);
+    M.print_matrix();
 }

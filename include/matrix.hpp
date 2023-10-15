@@ -21,6 +21,64 @@ class Matrix {
         }
     }
 
+    ~Matrix() {
+        for (int i = 0; i < rows; i++) {
+            delete[] data[i];
+        }
+        delete[] data;
+    } // деструктор
+
+    Matrix(const Matrix &rhs) : rows(rhs.rows), cols(rhs.cols) {
+        data = new M*[rows];
+
+        for (int i = 0; i < rows; i++) {
+            data[i] = new M[cols];
+
+            for (int j = 0; j < cols; j++) {
+                data[i][j] = rhs.data[i][j];
+            }
+        }
+    } // копирующий конструктор
+
+    Matrix(Matrix&& rhs) : rows(rhs.rows), cols(rhs.cols), data(rhs.data) {
+        rhs.data = nullptr;
+    } // перемещающий конструктор
+
+    Matrix& operator=(const Matrix& rhs) {
+        if (this != &rhs) {
+            for (int i = 0; i < rows; i++) {
+                delete[] data[i];
+            }
+            delete[] data;
+
+            rows = rhs.rows;
+            cols = rhs.cols;
+            data = new int*[rows];
+            for (int i = 0; i < rows; i++) {
+                data[i] = new int[cols];
+                for (int j = 0; j < cols; j++) {
+                    data[i][j] = rhs.data[i][j];
+                }
+            }
+        }
+        return *this;
+    } // оператор присваивания
+    
+    Matrix& operator=(Matrix&& rhs) {
+        if (this != &rhs) {
+            for (int i = 0; i < rows; i++) {
+                delete[] data[i];
+            }
+            delete[] data;
+
+            rows = rhs.rows;
+            cols = rhs.cols;
+            data = rhs.data;
+            rhs.data = nullptr;
+        }
+        return *this;
+    } // оператор перемещения
+
     // static Matrix eye(int n){
     //     this->rows = n;
     //     this->cols = n;
@@ -39,8 +97,14 @@ class Matrix {
             std::cout << "\n";
         }
     }
-    // преобразования матриц, не изменяющие значения определителя: 
-    // void summarize_rows();  // сложение строк
+
+    void summarize_rows(int row_number_the_first_term, int row_number_the_second_term) {
+        for(int j = 1; j <= cols; j++) { 
+            data[row_number_the_first_term - 1][j] += data[row_number_the_second_term - 1][j];
+        }
+    }  // сложение строк
+
+    
     // void multiply_rows();   // умножение строк
     // void swap_rows();   // поменять строки местами
     // void multiply_row_by_number();  // умножение строки на коэффициент
