@@ -1,144 +1,140 @@
+// Matrix.hpp
+
+#pragma once
+
 #include <iostream>
 #include <vector>
+#include <memory>
 
 namespace matrix {
 
 template <typename M> 
 class Matrix {
  private:
-    int **data;
+    struct ProxyRow {
+        std::shared_ptr<M[]> row; // умный указатель на массив объектов типа М
+
+        ProxyRow(int n) { // конструкторуирует структуру ProxyRow
+            row = std::make_shared<M[]> (n); // row указывает на массив размера n типа М
+        }
+        
+        ProxyRow(const ProxyRow &rhs) : row(rhs.row) {} // конструктор копирования
+
+        ProxyRow& operator=(const ProxyRow& rhs) {
+            if (this != &rhs) {
+                row = rhs.row;
+            }
+            return *this;
+        } // операция присваивания
+
+        ProxyRow(ProxyRow &&rhs) noexcept : row(rhs.row) {
+            rhs.row = nullptr;
+        } // конструктор перемещения
+
+        ProxyRow& operator=(ProxyRow &&rhs) noexcept {
+            if (this != &rhs) {
+                row = std::move(rhs.row);
+                rhs.row = nullptr;
+            }
+            return *this;
+        } // оператор перемещения
+
+        const M& operator[](int n) const {return row[n]; }
+        M& operator[](int n) {return row[n]; }
+    };
+
     int rows;
     int cols;
+    std::shared_ptr<ProxyRow[]> data; // умный указатель на массив объектов типа ProxyRow
 
  public:
-    Matrix(int rows, int cols) { 
-        this->rows = rows;
-        this->cols = cols;
-        data = new M*[rows];
+    ProxyRow operator[](int n) {
+        return data[n - 1];
+    }
 
-        for (int i = 0; i < rows; i++) {
-            data[i] = new M[cols];
+    Matrix(int rows, int cols) : rows(rows), cols(cols) {
+        data = std::make_shared<ProxyRow[]> (rows);
+        for (int i = 0; i < rows; ++i) {
+            std::cout << i << std::endl;
+            data[i] = ProxyRow(cols);
         }
     }
 
-    ~Matrix() {
-        for (int i = 0; i < rows; i++) {
-            delete[] data[i];
-        }
-        delete[] data;
-    } // деструктор
+    // Matrix(const Matrix &rhs) : rows(rhs.rows), cols(rhs.cols) {
+    //     data = std::make_shared<M[]>(rows);
 
-    Matrix(const Matrix &rhs) : rows(rhs.rows), cols(rhs.cols) {
-        data = new M*[rows];
+    //     for (int i = 0; i < rows; i++) {
+    //         data[i] = std::make_shared<M>(cols);
 
-        for (int i = 0; i < rows; i++) {
-            data[i] = new M[cols];
+    //         for (int j = 0; j < cols; j++) {
+    //             data[i][j] = rhs.data[i][j];
+    //         }
+    //     }
+    // } // копирующий конструктор
 
-            for (int j = 0; j < cols; j++) {
-                data[i][j] = rhs.data[i][j];
-            }
-        }
-    } // копирующий конструктор
+    // Matrix(Matrix&& rhs) : rows(rhs.rows), cols(rhs.cols), data(rhs.data) {
+    //     rhs.data = nullptr;
+    // } // перемещающий конструктор
 
-    Matrix(Matrix&& rhs) : rows(rhs.rows), cols(rhs.cols), data(rhs.data) {
-        rhs.data = nullptr;
-    } // перемещающий конструктор
+    // static Matrix eye(int n) {
+    //     Matrix eye = Matrix(n, n);
+    //     // заполнить единичками по диагонали
+    //     //
+    //     return eye;
+    // } // конструктор для создания единичной матрицы (она всегда квадратная)
 
-    Matrix& operator=(const Matrix& rhs) {
-        if (this != &rhs) {
-            for (int i = 0; i < rows; i++) {
-                delete[] data[i];
-            }
-            delete[] data;
 
-            rows = rhs.rows;
-            cols = rhs.cols;
-            data = new int*[rows];
-            for (int i = 0; i < rows; i++) {
-                data[i] = new int[cols];
-                for (int j = 0; j < cols; j++) {
-                    data[i][j] = rhs.data[i][j];
-                }
-            }
-        }
-        return *this;
-    } // оператор присваивания
-    
-    Matrix& operator=(Matrix&& rhs) {
-        if (this != &rhs) {
-            for (int i = 0; i < rows; i++) {
-                delete[] data[i];
-            }
-            delete[] data;
 
-            rows = rhs.rows;
-            cols = rhs.cols;
-            data = rhs.data;
-            rhs.data = nullptr;
-        }
-        return *this;
-    } // оператор перемещения
+    // void print_matrix() {
+    //     std::cout << "Matrix has rows = " << rows << ", cols = " << cols << std::endl;
+    //     for(int i = 0; i < rows; i++) {
+    //         for(int j = 0; j < cols; j++) {
+    //             std::cout << data[i][j] << " ";
+    //         }
+    //         std::cout << "\n";
+    //     }
+    // }
 
-    // static Matrix eye(int n){
-    //     this->rows = n;
-    //     this->cols = n;
-    // }; // конструктор для создания единичной матрицы (она всегда квадратная)
+    // void summarize_rows(int row_number_the_first_term, int row_number_the_second_term) {
+    //     for(int j = 1; j <= cols; j++) { 
+    //         data[row_number_the_first_term - 1][j] += data[row_number_the_second_term - 1][j];
+    //     }
+    // }  // сложение строк
 
-    M* operator[](int row) {
-        return data[row - 1];
-    }
+    // void multiply_row_by_number(int row_number, M multiplier) {
+    //     for(int j = 1; j <= cols; j++) { 
+    //         data[row_number - 1][j] *= multiplier;
+    //     }
+    // } // умножение строки на число
 
-    void print_matrix() {
-        std::cout << "Matrix has rows = " << rows << ", cols = " << cols << std::endl;
-        for(int i = 0; i < rows; i++) {
-            for(int j = 1; j <= cols; j++) {
-                std::cout << data[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-    }
+    // void swap_rows(int first_row_number, int second_row_number) {
+    //     auto tmp = data[first_row_number - 1];
+    //     data[first_row_number - 1] = data[second_row_number - 1];
+    //     data[second_row_number - 1] = tmp;
+    // } // поменять строки местами
 
-    void summarize_rows(int row_number_the_first_term, int row_number_the_second_term) {
-        for(int j = 1; j <= cols; j++) { 
-            data[row_number_the_first_term - 1][j] += data[row_number_the_second_term - 1][j];
-        }
-    }  // сложение строк
-
-    void multiply_row_by_number(int row_number, M multiplier) {
-        for(int j = 1; j <= cols; j++) { 
-            data[row_number - 1][j] *= multiplier;
-        }
-    } // умножение строки на число
-
-    void swap_rows(int first_row_number, int second_row_number) {
-        auto tmp = data[first_row_number - 1];
-        data[first_row_number - 1] = data[second_row_number - 1];
-        data[second_row_number - 1] = tmp;
-    } // поменять строки местами
-
-    bool is_diagonal() {
-        if(rows == cols) {
-            for(int i = 0; i < rows; i++) {
-                for(int j = 1; j <= cols; j++) {
-                    if((data[i][i + 1] != 0) && (data[i][i] == 0))
-                    {
-                        
-                        return true;
-                    }
-                    else {
-                        
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
-    } // проверка, является ли матрица диагональной 
+    // bool is_diagonal() {
+    //     if(rows == cols) {
+    //         for(int i = 0; i < rows; i++) {
+    //             if((data[i][i + 1] != 0) && (data[i][i] == 0))
+    //             {
+                    
+    //                 return true;
+    //             }
+    //             else {
+                    
+    //                 return false;
+    //             }
+    //         }
+    //     }
+    //     return false;
+    // } // проверка, является ли матрица диагональной 
 
     // M determinant_of_diagonal_matrix()  { // подсчет определителя диагональной матрицы
     //     if(is_diagonal()) {
-    //         // логика перемножения всех диагональных элементов
-    //         // return determininant;
+    //         for()
+    //         auto determinant = 
+    //         return determininant;
     //     }
     // }
 
