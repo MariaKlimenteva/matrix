@@ -6,23 +6,36 @@ namespace matrix {
 template <typename M> 
 class Matrix {
  private:
-    int **data;
-    int rows;
-    int cols;
+    M **data; // jagged vector
+    M rows, cols;
+
+    class ProxyRow {
+     private:
+        M* row;
+     public:
+        ProxyRow(M* row) : row(row) {}
+
+        M& operator[](M n) {return row[n - 1]; }
+        const M& operator[](M n) const {return row[n - 1]; }
+    };
 
  public:
-    Matrix(int rows, int cols) { 
+    ProxyRow operator[](M n) {
+        return ProxyRow(data[n - 1]);
+    }
+    
+    Matrix(M rows, M cols) { 
         this->rows = rows;
         this->cols = cols;
         data = new M*[rows];
 
-        for (int i = 0; i < rows; i++) {
+        for (M i = 0; i < rows; i++) {
             data[i] = new M[cols];
         }
     }
 
     ~Matrix() {
-        for (int i = 0; i < rows; i++) {
+        for (M i = 0; i < rows; i++) {
             delete[] data[i];
         }
         delete[] data;
@@ -31,10 +44,10 @@ class Matrix {
     Matrix(const Matrix &rhs) : rows(rhs.rows), cols(rhs.cols) {
         data = new M*[rows];
 
-        for (int i = 0; i < rows; i++) {
+        for (M i = 0; i < rows; i++) {
             data[i] = new M[cols];
 
-            for (int j = 0; j < cols; j++) {
+            for (M j = 0; j < cols; j++) {
                 data[i][j] = rhs.data[i][j];
             }
         }
@@ -65,23 +78,19 @@ class Matrix {
     } // оператор присваивания
     
     Matrix& operator=(Matrix&& rhs) {
-        if (this != &rhs) {
-            for (int i = 0; i < rows; i++) {
-                delete[] data[i];
-            }
-            delete[] data;
-
-            rows = rhs.rows;
-            cols = rhs.cols;
-            data = rhs.data;
-            rhs.data = nullptr;
+        if (this == &rhs) {
+            return *this;
         }
+        std::swap(rows, rhs.rows);
+        std::swap(cols, rhs.cols);
+        std::swap(data, rhs.data);
+
         return *this;
     } // оператор перемещения
 
-    M* operator[](int row) {
-        return data[row - 1];
-    }
+    // M* operator[](int row) {
+    //     return data[row - 1];
+    // }
 
     void print_matrix() {
         std::cout << "Matrix has rows = " << rows << ", cols = " << cols << std::endl;
